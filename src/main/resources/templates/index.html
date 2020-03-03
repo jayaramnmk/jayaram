@@ -1,0 +1,162 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+   <head>
+      <title>AngularJS</title>
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.js"></script>
+       
+      <script >var app = angular.module("EmployeeManagement", []);
+      
+   // Controller Part
+   app.controller("EmployeeController", function($scope, $http) {
+       $scope.employees = [];
+       $scope.employeeForm = {
+           id: "",
+           idNo: "",
+           firstName: ""
+           
+       };
+    
+       // Now load the data from server
+       _refreshEmployeeData();
+    
+       // HTTP POST/PUT methods for add/edit employee  
+       // Call: http://localhost:8080/employee
+       $scope.submitEmployee = function() {
+    
+           var method = "";
+           var url = "";
+    
+           if ($scope.employeeForm.empId == -1) {
+               method = "POST";
+               url = 'api/v1/employee/all';
+           } else {
+               method = "PUT";
+               url = '/employee';
+           }
+    
+           $http({
+               method: method,
+               url: url,
+               data: angular.toJson($scope.employeeForm),
+               headers: {
+                   'Content-Type': 'application/json'
+               }
+           }).then(_success, _error);
+       };
+    
+       $scope.createEmployee = function() {
+           _clearFormData();
+       }
+    
+       // HTTP DELETE- delete employee by Id
+       // Call: http://localhost:8080/employee/{empId}
+       $scope.deleteEmployee = function(employee) {
+           $http({
+               method: 'DELETE',
+               url: '/employee/' + employee.empId
+           }).then(_success, _error);
+       };
+    
+       // In case of edit
+       	$scope.editEmployee = function(employee) {
+           $scope.employeeForm.empId = employee.empId;
+           $scope.employeeForm.empNo = employee.empNo;
+           $scope.employeeForm.empName = employee.empName;
+       };
+    
+       // Private Method  
+       // HTTP GET- get all employees collection
+       // Call: http://localhost:8080/employees
+       function _refreshEmployeeData() {
+           $http({
+               method: 'GET',
+               url: 'api/v1/employee/all'
+           }).then(
+               function(res) { // success
+                   $scope.employees = res.data;
+               },
+               function(res) { // error
+                   console.log("Error: " + res.status + " : " + res.data);
+               }
+           );
+       }
+    
+       function _success(res) {
+           _refreshEmployeeData();
+           _clearFormData();
+       }
+    
+       function _error(res) {
+           var data = res.data;
+           var status = res.status;
+           var header = res.header;
+           var config = res.config;
+           alert("Error: " + status + ":" + data);
+       }
+    
+       // Clear the form
+       function _clearFormData() {
+           $scope.employeeForm.empId = "";
+           $scope.employeeForm.empNo = "";
+           $scope.employeeForm.empName = ""
+       };
+   });</script>
+      <link th:href="@{/main.css}" rel="stylesheet" />
+       
+      <head>
+   <body ng-app="EmployeeManagement" ng-controller="EmployeeController">
+      <h3>
+         CRUD: Spring Boot + Rest + AngularJS
+      </h3>
+      <form ng-submit="submitEmployee()">
+         <table border="0">
+            <tr>
+               <td>Emp Id</td>
+               <td><input type="text" ng-model="employeeForm.id" /></td>
+            </tr>
+            <tr>
+               <td>Emp No</td>
+               <td><input type="text" ng-model="employeeForm.empNo" /></td>
+            </tr>
+            <tr>
+               <td>Emp Name</td>
+               <td><input type="text" ng-model="employeeForm.empName"  /></td>
+            </tr>
+            <tr>
+               <td colspan="2">
+                  <input type="submit" value="Submit" class="blue-button" />
+               </td>
+            </tr>
+         </table>
+      </form>
+      <br/>
+      <a class="create-button" ng-click="createEmployee()">Create Employee</a>
+      <table border="1">
+         <tr>
+            <th>Emp Id</th>
+            <th>Emp No</th>
+            <th>Emp Name</th>
+            <th>Edit</th>
+            <th>Delete</th>
+         </tr>
+         <!-- $scope.employees -->
+         <tr ng-repeat="employee in employees">
+            
+            <td> {{ employee.id }}</td>           
+            <td> {{ employee.idNo }}</td>           
+           <td >{{ employee.firstName }}</td>
+            <td>
+            <a ng-click="editEmployee(employee)" class="edit-button">Edit</a>
+            </td>
+            <td>
+            <a ng-click="deleteEmployee(employee)" class="delete-button">Delete</a>
+            </td>
+         </tr>
+      </table>
+   </body>
+</html>
+
+<a class="create-button" ng-click="createEmployee()">Create Employee</a>
+
+
+
